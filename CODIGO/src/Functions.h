@@ -2,6 +2,17 @@
 #include "Config.h"
 
 
+// -------------------- Funciones de control de flujo ---------------------
+bool timer() {
+    static unsigned long lastTime = 0;
+    unsigned long currentTime = millis();
+    if (currentTime - lastTime >= 200) { // Verifica si ha pasado 1 segundo
+        lastTime = currentTime; // Actualiza el tiempo del último evento
+        return true; // 
+    }
+    return false; //
+}
+
 // -------------------- Funcion de verificación de conexiones ---------------------
 ConectionStatus checkConnections(bool forceCheck = false) {
     // Verifica las conexiones de los sensores y dispositivos
@@ -18,7 +29,11 @@ ConectionStatus checkConnections(bool forceCheck = false) {
         #endif
         
         #ifdef FC
-        
+         if (!max02.begin(Wire, I2C_SPEED_STANDARD)) {
+                Serial.println("Error: FC no conectado.");
+                connectionStatus = NO_FC;
+                return connectionStatus; // Devuelve un estado de error si el FC no está conectado
+            }
         #endif
 
         #ifdef USE_BLE
@@ -34,6 +49,7 @@ ConectionStatus checkConnections(bool forceCheck = false) {
     return connectionStatus; // Todas las conexiones están correctas
 }
 
+#ifdef USE_MPU6050
 void initMPU(){
     if (imu.begin()){ // Inicializa el sensor MPU6050
     #ifdef OFFSETS
@@ -44,7 +60,9 @@ void initMPU(){
     #endif
     }
 }
+#endif
 
+#ifdef USE_MPU6050
 void hardResetMPU() {
     Wire.beginTransmission(MPU_ADDRESS);
     Wire.write(0x6B);    // PWR_MGMT_1
@@ -52,7 +70,9 @@ void hardResetMPU() {
     Wire.endTransmission();
     delay(100);
 }
+#endif
 
+#ifdef USE_MPU6050
 void wakeUp(){
     hardResetMPU();
     delay(100);
@@ -63,6 +83,7 @@ void wakeUp(){
     initMPU();
     }
 }
+#endif
 
 // -------------------- Función de verificación de actividad física ---------------------
 bool checkActivity() {
@@ -197,7 +218,9 @@ ErrorStatus checkError() {
     if (connectionStatus != ALL_OK){
         switch (connectionStatus) {
             case NO_MPU:
+            #ifdef USE_MPU6050
                 wakeUp(); // Intenta reactivar el MPU6050
+            #endif
                 #ifdef DEBUG
                     Serial.println("Error: No se detecta el MPU6050.");
                     Serial.println("Intentando reactivar el MPU6050...");

@@ -13,6 +13,8 @@
     extern MPU6050 imu;
     extern IMUData rawData, data;
     extern DynamicThreshold dth;
+#else 
+    #include <Wire.h>
 #endif
 
 #ifdef USE_BLE

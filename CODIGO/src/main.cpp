@@ -3,24 +3,14 @@
 #include "config.h"
 #include "Functions.h"
 
-bool timer() {
-    static unsigned long lastTime = 0;
-    unsigned long currentTime = millis();
-    if (currentTime - lastTime >= 200) { // Verifica si ha pasado 1 segundo
-        lastTime = currentTime; // Actualiza el tiempo del último evento
-        return true; // 
-    }
-    return false; //
-}
-
-
 void setup() {
     Serial.begin(115200);
     delay(WAIT_SERIAL); // Espera la inicialización del puerto serie 
 
+    Wire.begin(SDA_PIN, SCL_PIN);
+
     // ---------- Declaración de sensores ----------
     #ifdef USE_MPU6050
-        imu.setPins(SDA_PIN, SCL_PIN); // Configura los pines SDA y SCL
         initMPU();
     #endif
 
